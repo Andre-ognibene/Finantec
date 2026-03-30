@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gráficos - FINANTEC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #f3f4f6; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { min-height: 100vh; background-color: #111827; padding: 25px; color: white; }
+        .brand-logo { display: flex; align-items: center; font-weight: bold; font-size: 1.5rem; color: white; margin-bottom: 40px; gap: 10px; }
+        .logo-icon { background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 8px 12px; border-radius: 10px; }
+        .nav-link { color: #9ca3af; padding: 12px 15px; border-radius: 10px; margin-bottom: 5px; transition: 0.3s; font-weight: 500; display: flex; align-items: center; }
+        .nav-link:hover { background-color: rgba(255,255,255,0.05); color: white; }
+        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+        .nav-link i { margin-right: 12px; font-size: 1.2rem; }
+        .chart-container-clean { padding: 10px 0; height: 100%; }
+        .chart-header { margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .chart-title { font-weight: 700; color: #1e293b; margin: 0; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+<div id="dados-graficos" style="display: none;"
+    data-financas-entradas="{{ grafico_financas.entradas }}"
+    data-financas-saidas="{{ grafico_financas.saidas }}"
+    data-metas-nomes='{{ grafico_metas.nomes | tojson }}'
+    data-metas-atuais='{{ grafico_metas.atuais | tojson }}'
+    data-metas-alvos='{{ grafico_metas.alvos | tojson }}'
+    data-evolucao-labels='{{ grafico_evolucao.labels | tojson }}'
+    data-evolucao-data='{{ grafico_evolucao.data | tojson }}'
+></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar d-none d-md-block">
+            <div class="brand-logo"><span class="logo-icon"><i class="bi bi-graph-up-arrow"></i></span>FINANTEC</div>
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+                <a class="nav-link" href="{{ url_for('transferir_form') }}"><i class="bi bi-arrow-left-right"></i> Movimentações</a>
+                <a class="nav-link" href="{{ url_for('metas') }}"><i class="bi bi-bullseye"></i> Controle de Metas</a>
+                <a class="nav-link" href="{{ url_for('investimentos') }}"><i class="bi bi-graph-up"></i> Investimento</a>
+                <a class="nav-link active" href="{{ url_for('graficos') }}"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
+                <div class="mt-5 border-top border-secondary pt-4"><a class="nav-link text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Sair</a></div>
+            </nav>
+        </div>
+
+        <div class="col-md-10 p-5">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <div><h2 class="fw-bold text-dark">Análise Visual</h2><p class="text-muted">Desempenho financeiro em detalhes.</p></div>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-dark rounded-pill">Voltar</a>
+            </div>
+
+            <div class="row g-5">
+                <div class="col-md-4">
+                    <div class="chart-container-clean">
+                        <div class="chart-header"><h5 class="chart-title">Fluxo de Caixa</h5></div>
+                        <div style="height: 300px;"><canvas id="chartFinancas"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="chart-container-clean">
+                        <div class="chart-header"><h5 class="chart-title">Progresso das Metas</h5></div>
+                        <div style="height: 300px;"><canvas id="chartMetas"></canvas></div>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-5 opacity-25">
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="chart-container-clean">
+                        <div class="chart-header"><h5 class="chart-title">Tendência Histórica</h5></div>
+                        <div style="height: 350px;"><canvas id="chartEvolucao"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const el = document.getElementById('dados-graficos');
+    
+    const dadosFinancas = {
+        entradas: parseFloat(el.dataset.financasEntradas),
+        saidas: parseFloat(el.dataset.financasSaidas)
+    };
+    
+    const dadosMetas = {
+        nomes: JSON.parse(el.dataset.metasNomes),
+        atuais: JSON.parse(el.dataset.metasAtuais),
+        alvos: JSON.parse(el.dataset.metasAlvos)
+    };
+
+    const dadosEvolucao = {
+        labels: JSON.parse(el.dataset.evolucaoLabels),
+        data: JSON.parse(el.dataset.evolucaoData)
+    };
+
+    Chart.defaults.font.family = "'Segoe UI', sans-serif";
+    Chart.defaults.color = '#64748b';
+    const gridColor = '#e2e8f0';
+
+    const ctxFinancas = document.getElementById('chartFinancas');
+    new Chart(ctxFinancas, {
+        type: 'doughnut',
+        data: {
+            labels: ['Receitas', 'Despesas'],
+            datasets: [{
+                data: [dadosFinancas.entradas, dadosFinancas.saidas],
+                backgroundColor: ['#10B981', '#F87171'], borderWidth: 2, borderColor: '#f3f4f6'
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+    });
+
+    const ctxMetas = document.getElementById('chartMetas');
+    new Chart(ctxMetas, {
+        type: 'bar',
+        data: {
+            labels: dadosMetas.nomes,
+            datasets: [
+                { label: 'Guardado', data: dadosMetas.atuais, backgroundColor: '#3b82f6', borderRadius: 6 },
+                { label: 'Total', data: dadosMetas.alvos, backgroundColor: '#cbd5e1', borderRadius: 6, grouped: false, order: 1 }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { grid: { borderDash: [5, 5], color: gridColor } } } }
+    });
+
+    const ctxEvolucao = document.getElementById('chartEvolucao').getContext('2d');
+    const gradiente = ctxEvolucao.createLinearGradient(0,0,0,350);
+    gradiente.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
+    gradiente.addColorStop(1, 'rgba(139, 92, 246, 0)');
+
+    new Chart(ctxEvolucao, {
+        type: 'line',
+        data: {
+            labels: dadosEvolucao.labels,
+            datasets: [{
+                label: 'Movimentação',
+                data: dadosEvolucao.data,
+                borderColor: '#8b5cf6', backgroundColor: gradiente, fill: true, tension: 0.4
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { grid: { color: gridColor } } }, plugins: { legend: { display: false } } }
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Meta - FINANTEC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background-color: #111827;
+            padding: 25px;
+            color: white;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 40px;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .nav-link {
+            color: #9ca3af;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            transition: 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .nav-link.active {
+            background-color: #2563eb;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #4b5563;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2 sidebar d-none d-md-block">
+                <div class="brand-logo"><span class="logo-icon"><i class="bi bi-graph-up-arrow"></i></span>FINANTEC
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-grid-1x2-fill"></i>
+                        Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('transferir_form') }}"><i class="bi bi-arrow-left-right"></i>
+                        Movimentações</a>
+                    <a class="nav-link active" href="{{ url_for('metas') }}"><i class="bi bi-bullseye"></i> Controle de
+                        Metas</a>
+                    <a class="nav-link" href="{{ url_for('investimentos') }}"><i class="bi bi-graph-up"></i>
+                        Investimento</a>
+                    <a class="nav-link" href="{{ url_for('graficos') }}"><i class="bi bi-bar-chart-line"></i>
+                        Gráficos</a>
+                    <div class="mt-5 border-top border-secondary pt-4"><a class="nav-link text-danger"
+                            href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Sair</a></div>
+                </nav>
+            </div>
+
+            <div class="col-md-10 p-5">
+                <div class="d-flex justify-content-between align-items-center mb-5 max-w-800 mx-auto"
+                    style="max-width: 800px;">
+                    <div>
+                        <h2 class="fw-bold text-dark">Detalhes da Meta</h2>
+                        <p class="text-muted">Atualize as informações do seu objetivo.</p>
+                    </div>
+                    <a href="{{ url_for('metas') }}" class="btn btn-outline-secondary rounded-pill px-4">Voltar</a>
+                </div>
+
+                <div class="form-card">
+                    <div class="text-center mb-5">
+                        <h5 class="text-muted mb-2">Progresso Atual</h5>
+                        <h2 class="fw-bold text-primary display-6">
+                            R$ {{ "{:,.2f}".format(meta.saldo).replace(',', 'X').replace('.', ',').replace('X', '.') }}
+                            <span class="text-muted fs-5 fw-normal">/ {{ "{:,.2f}".format(meta.valorMeta).replace(',',
+                                'X').replace('.', ',').replace('X', '.') }}</span>
+                        </h2>
+                        {% set progresso = (meta.saldo / meta.valorMeta * 100) if meta.valorMeta > 0 else 0 %}
+                        <div class="progress mt-3 mx-auto" style="height: 10px; width: 80%; border-radius: 20px;">
+                            <div class="progress-bar bg-success" style="width: {{ progresso }}%"></div>
+                        </div>
+                        <p class="text-success mt-2 fw-bold small">{{ "%.1f"|format(progresso) }}% Concluído</p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('editar_meta', meta_id=meta.idCarteira) }}">
+                        <div class="mb-4">
+                            <label class="form-label">Nome da Meta</label>
+                            <input type="text" name="descricao" class="form-control form-control-lg"
+                                value="{{ meta.descricao }}" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label">Valor Alvo (R$)</label>
+                                <input type="number" step="0.01" name="valor_meta" class="form-control form-control-lg"
+                                    value="{{ meta.valorMeta }}" required>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label">Prazo</label>
+                                <input type="date" name="prazo" class="form-control form-control-lg"
+                                    value="{{ meta.prazoEstipulado }}">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3 mb-5 fw-bold">Salvar
+                            Alterações</button>
+                    </form>
+
+                    <div class="border-top pt-4">
+                        <div class="p-4 rounded-3 border">
+                            <div class="d-flex align-items-center mb-2 text-danger">
+                                <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                                <h5 class="fw-bold m-0">Atenção</h5>
+                            </div>
+                            <p class="text-muted small mb-3">
+                                A exclusão é irreversível. O saldo acumulado (R$ {{ meta.saldo }}) será devolvido
+                                automaticamente para a <strong>Carteira Principal</strong>.
+                            </p>
+                            <form method="POST" action="{{ url_for('excluir_meta', meta_id=meta.idCarteira) }}"
+                                onsubmit="return confirm('Tem certeza que deseja excluir esta meta? O saldo será devolvido.');">
+                                <button type="submit" class="btn btn-outline-danger w-100 fw-bold">Excluir Meta e
+                                    Recuperar Saldo</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

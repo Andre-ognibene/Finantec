@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Movimentações - FINANTEC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f3f4f6; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { min-height: 100vh; background-color: #111827; padding: 25px; color: white; }
+        .brand-logo { display: flex; align-items: center; font-weight: bold; font-size: 1.5rem; color: white; margin-bottom: 40px; gap: 10px; }
+        .logo-icon { background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 8px 12px; border-radius: 10px; }
+        .nav-link { color: #9ca3af; padding: 12px 15px; border-radius: 10px; margin-bottom: 5px; transition: 0.3s; font-weight: 500; display: flex; align-items: center; }
+        .nav-link:hover { background-color: rgba(255,255,255,0.05); color: white; }
+        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+        .nav-link i { margin-right: 12px; font-size: 1.2rem; }
+
+        .card-form { background: white; border: none; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 25px; height: 100%; }
+        .form-label { font-weight: 600; font-size: 0.9rem; color: #4b5563; }
+        .form-control, .form-select { border-radius: 8px; border: 1px solid #d1d5db; padding: 10px 15px; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar d-none d-md-block">
+            <div class="brand-logo"><span class="logo-icon"><i class="bi bi-graph-up-arrow"></i></span>FINANTEC</div>
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+                <a class="nav-link active" href="{{ url_for('transferir_form') }}"><i class="bi bi-arrow-left-right"></i> Movimentações</a>
+                <a class="nav-link" href="{{ url_for('metas') }}"><i class="bi bi-bullseye"></i> Controle de Metas</a>
+                <a class="nav-link" href="{{ url_for('investimentos') }}"><i class="bi bi-graph-up"></i> Investimento</a>
+                <a class="nav-link" href="{{ url_for('graficos') }}"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
+                <div class="mt-5 border-top border-secondary pt-4"><a class="nav-link text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Sair</a></div>
+            </nav>
+        </div>
+
+        <div class="col-md-10 p-5">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <div><h2 class="fw-bold text-dark">Central de Movimentações</h2><p class="text-muted">Gerencie suas receitas, despesas e transferências.</p></div>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-dark rounded-pill">Voltar</a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm"><i class="bi bi-info-circle-fill me-2"></i>{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <div class="row g-4">
+                
+                <div class="col-lg-4">
+                    <div class="card-form border-top border-4 border-success">
+                        <div class="d-flex align-items-center mb-4 text-success"><i class="bi bi-plus-circle-fill fs-4 me-2"></i><h5 class="fw-bold m-0">Nova Receita</h5></div>
+                        <form method="POST" action="{{ url_for('adicionar_renda') }}">
+                            <div class="mb-3"><label class="form-label">Destino</label>
+                                <select name="id_carteira_destino" class="form-select bg-light" required>
+                                    {% for carteira in carteiras %}<option value="{{ carteira.idCarteira }}">{{ carteira.nome }} (R$ {{ carteira.saldo }})</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Valor (R$)</label><input type="number" step="0.01" min="0.01" name="valor" class="form-control" required></div><div class="col-md-6 mb-3"><label class="form-label">Data</label><input type="date" name="data" class="form-control" required></div></div>
+                            <div class="mb-4"><label class="form-label">Categoria</label><input type="text" name="categoria" class="form-control" placeholder="Ex: Salário..." required></div>
+                            <button type="submit" class="btn btn-success w-100 py-2 fw-bold">Confirmar Entrada</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card-form border-top border-4 border-danger">
+                        <div class="d-flex align-items-center mb-4 text-danger"><i class="bi bi-dash-circle-fill fs-4 me-2"></i><h5 class="fw-bold m-0">Nova Despesa</h5></div>
+                        <form method="POST" action="{{ url_for('adicionar_despesa') }}">
+                            <div class="mb-3"><label class="form-label">Origem</label>
+                                <select name="id_carteira_origem" class="form-select bg-light" required>
+                                    {% for carteira in carteiras %}<option value="{{ carteira.idCarteira }}">{{ carteira.nome }} (R$ {{ carteira.saldo }})</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Valor (R$)</label><input type="number" step="0.01" min="0.01" name="valor" class="form-control" required></div><div class="col-md-6 mb-3"><label class="form-label">Data</label><input type="date" name="data" class="form-control" required></div></div>
+                            <div class="mb-4"><label class="form-label">Categoria</label><input type="text" name="categoria" class="form-control" placeholder="Ex: Mercado, Luz..." required></div>
+                            <button type="submit" class="btn btn-danger w-100 py-2 fw-bold">Registrar Saída</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card-form border-top border-4 border-primary">
+                        <div class="d-flex align-items-center mb-4 text-primary"><i class="bi bi-arrow-left-right fs-4 me-2"></i><h5 class="fw-bold m-0">Transferir Saldo</h5></div>
+                        <form method="POST" action="{{ url_for('transferir_saldo') }}">
+                            <div class="mb-3"><label class="form-label">Origem</label><select name="id_carteira_origem" class="form-select bg-light" required>{% for carteira in carteiras %}<option value="{{ carteira.idCarteira }}">{{ carteira.nome }} (R$ {{ carteira.saldo }})</option>{% endfor %}</select></div>
+                            <div class="mb-3"><label class="form-label">Destino</label><select name="id_carteira_destino" class="form-select bg-light" required>{% for carteira in carteiras %}<option value="{{ carteira.idCarteira }}">{{ carteira.nome }} (R$ {{ carteira.saldo }})</option>{% endfor %}</select></div>
+                            <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Valor</label><input type="number" step="0.01" min="0.01" name="valor" class="form-control" required></div><div class="col-md-6 mb-3"><label class="form-label">Data</label><input type="date" name="data" class="form-control" required></div></div>
+                            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Transferir</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

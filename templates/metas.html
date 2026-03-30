@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Controle de Metas - FINANTEC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f3f4f6; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { min-height: 100vh; background-color: #111827; padding: 25px; color: white; }
+        .brand-logo { display: flex; align-items: center; font-weight: bold; font-size: 1.5rem; color: white; margin-bottom: 40px; gap: 10px; }
+        .logo-icon { background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 8px 12px; border-radius: 10px; }
+        .nav-link { color: #9ca3af; padding: 12px 15px; border-radius: 10px; margin-bottom: 5px; transition: 0.3s; font-weight: 500; display: flex; align-items: center; }
+        .nav-link i { margin-right: 12px; font-size: 1.2rem; }
+        .nav-link:hover { background-color: rgba(255,255,255,0.05); color: white; }
+        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+
+        .meta-card { background: white; border: none; border-radius: 16px; padding: 25px; transition: transform 0.2s; height: 100%; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; position: relative; }
+        .meta-card:hover { transform: translateY(-5px); border-color: #3b82f6; }
+        
+        .card-concluida { opacity: 0.8; background-color: #f9fafb; border-left: 5px solid #10b981; }
+        .stamp-concluida { position: absolute; top: 10px; right: 10px; color: #10b981; font-size: 1.5rem; }
+
+        .btn-add-meta { border: 2px dashed #d1d5db; background: transparent; color: #6b7280; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; border-radius: 16px; min-height: 240px; text-decoration: none; transition: 0.3s; }
+        .btn-add-meta:hover { border-color: #3b82f6; color: #3b82f6; background-color: #eff6ff; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar d-none d-md-block">
+            <div class="brand-logo"><span class="logo-icon"><i class="bi bi-graph-up-arrow"></i></span>FINANTEC</div>
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+                <a class="nav-link" href="{{ url_for('transferir_form') }}"><i class="bi bi-arrow-left-right"></i> Movimentações</a>
+                <a class="nav-link active" href="{{ url_for('metas') }}"><i class="bi bi-bullseye"></i> Controle de Metas</a>
+                <a class="nav-link" href="{{ url_for('investimentos') }}"><i class="bi bi-graph-up"></i> Investimento</a>
+                <a class="nav-link" href="{{ url_for('graficos') }}"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
+                <div class="mt-5 border-top border-secondary pt-4"><a class="nav-link text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Sair</a></div>
+            </nav>
+        </div>
+
+        <div class="col-md-10 p-5">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <div><h2 class="fw-bold text-dark">Objetivos Ativos</h2><p class="text-muted">Mantenha o foco nos seus sonhos.</p></div>
+                <a href="{{ url_for('criar_meta') }}" class="btn btn-primary rounded-pill px-4"><i class="bi bi-plus-lg me-2"></i>Nova Meta</a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <div class="row g-4 mb-5">
+                {% for meta in metas %}
+                <div class="col-md-4">
+                    <div class="meta-card d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="fw-bold text-dark m-0">{{ meta.descricao }}</h5>
+                                <div class="bg-primary bg-opacity-10 p-2 rounded-circle text-primary"><i class="bi bi-flag-fill"></i></div>
+                            </div>
+                            <h2 class="fw-bold mb-1 text-dark">R$ {{ "{:,.2f}".format(meta.saldo).replace(',', 'X').replace('.', ',').replace('X', '.') }}</h2>
+                            <small class="text-muted">Alvo: R$ {{ "{:,.2f}".format(meta.valorMeta).replace(',', 'X').replace('.', ',').replace('X', '.') }}</small>
+                            
+                            {% set progresso = (meta.saldo / meta.valorMeta * 100) if meta.valorMeta > 0 else 0 %}
+                            <div class="progress mt-4 mb-2" style="height: 8px; border-radius: 10px;"><div class="progress-bar bg-primary" style="width: {{ progresso }}%"></div></div>
+                            <div class="d-flex justify-content-between">
+                                <span class="badge bg-light text-dark border">{{ "%.0f"|format(progresso) }}%</span>
+                                <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>{{ meta.prazoEstipulado.strftime('%d/%m/%Y') if meta.prazoEstipulado else 'Sem prazo' }}</small>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top d-flex gap-2">
+                            <a href="{{ url_for('editar_meta', meta_id=meta.idCarteira) }}" class="btn btn-outline-secondary w-100 rounded-pill fw-semibold">Gerenciar</a>
+                            
+                            {% if meta.saldo >= meta.valorMeta %}
+                            <form action="{{ url_for('finalizar_meta', meta_id=meta.idCarteira) }}" method="POST" class="w-100">
+                                <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold"><i class="bi bi-check-lg me-1"></i>Finalizar</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="col-md-4">
+                    <a href="{{ url_for('criar_meta') }}" class="btn-add-meta">
+                        <i class="bi bi-plus-lg fs-2 mb-2"></i><span class="fw-bold">Novo Objetivo</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-5 pt-5 border-top">
+                <h4 class="fw-bold text-dark mb-4"><i class="bi bi-trophy-fill text-warning me-2"></i>Histórico de Conquistas</h4>
+                <div class="row g-4">
+                    {% for meta in concluidas %}
+                    <div class="col-md-4">
+                        <div class="meta-card card-concluida d-flex flex-column">
+                            <i class="bi bi-patch-check-fill stamp-concluida"></i>
+                            <h5 class="fw-bold text-muted mb-3">{{ meta.descricao }}</h5>
+                            <h3 class="fw-bold text-success m-0">R$ {{ "{:,.2f}".format(meta.saldo).replace(',', 'X').replace('.', ',').replace('X', '.') }}</h3>
+                            <p class="text-muted small mt-2 mb-0">Meta atingida e arquivada.</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12"><p class="text-muted">Você ainda não possui metas concluídas. Continue poupando!</p></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - FINANTEC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f3f4f6; font-family: 'Segoe UI', sans-serif; }
+        
+        .sidebar { min-height: 100vh; background-color: #111827; padding: 25px; color: white; }
+        .brand-logo { display: flex; align-items: center; font-weight: bold; font-size: 1.5rem; color: white; margin-bottom: 40px; gap: 10px; }
+        .logo-icon { background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 8px 12px; border-radius: 10px; }
+        
+        .nav-link { color: #9ca3af; padding: 12px 15px; border-radius: 10px; margin-bottom: 5px; transition: 0.3s; font-weight: 500; display: flex; align-items: center; }
+        .nav-link i { margin-right: 12px; font-size: 1.2rem; }
+        .nav-link:hover { background-color: rgba(255,255,255,0.05); color: white; }
+        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+
+        .card-config {
+            background: white;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+        
+        .section-title { font-weight: 700; color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; }
+        .form-label { font-weight: 600; font-size: 0.9rem; color: #4b5563; }
+        .form-control { border-radius: 8px; border: 1px solid #d1d5db; padding: 10px 15px; }
+        .form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        
+        .avatar-circle {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white; font-size: 2.5rem; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; margin-right: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar d-none d-md-block">
+            <div class="brand-logo">
+                <span class="logo-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                FINANTEC
+            </div>
+            
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+                <a class="nav-link" href="{{ url_for('transferir_form') }}"><i class="bi bi-arrow-left-right"></i> Movimentações</a>
+                <a class="nav-link" href="{{ url_for('metas') }}"><i class="bi bi-bullseye"></i> Controle de Metas</a>
+                <a class="nav-link" href="{{ url_for('investimentos') }}"><i class="bi bi-graph-up"></i> Investimento</a>
+                <a class="nav-link" href="{{ url_for('graficos') }}"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
+                
+                <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+                    <a class="nav-link active" href="{{ url_for('perfil') }}"><i class="bi bi-gear-fill"></i> Configurações</a>
+                </div>
+
+                <div class="mt-auto pt-4">
+                     <a class="nav-link text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Sair</a>
+                </div>
+            </nav>
+        </div>
+
+        <div class="col-md-10 p-5">
+            
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <div>
+                    <h2 class="fw-bold text-dark">Minha Conta</h2>
+                    <p class="text-muted">Gerencie seus dados pessoais e segurança.</p>
+                </div>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-dark rounded-pill px-4">Voltar ao Dashboard</a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    
+                    <div class="card-config">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="avatar-circle">
+                                {{ usuario.nome[0].upper() }}
+                            </div>
+                            <div>
+                                <h4 class="fw-bold m-0">{{ usuario.nome }}</h4>
+                                <p class="text-muted m-0">{{ usuario.email }}</p>
+                            </div>
+                        </div>
+
+                        <h5 class="section-title"><i class="bi bi-person-lines-fill me-2 text-primary"></i> Informações Básicas</h5>
+                        
+                        <form method="POST" action="{{ url_for('perfil') }}">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nome Completo</label>
+                                    <input type="text" name="nome" class="form-control" value="{{ usuario.nome }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">E-mail</label>
+                                    <input type="email" name="email" class="form-control" value="{{ usuario.email }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Data de Nascimento</label>
+                                <input type="date" name="data_nascimento" class="form-control" value="{{ usuario.data_nasc.strftime('%Y-%m-%d') }}" required>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary px-4 fw-bold rounded-3">Salvar Alterações</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card-config">
+                        <h5 class="section-title"><i class="bi bi-shield-lock-fill me-2 text-primary"></i>  Alteração de senha</h5>
+                        <form method="POST" action="{{ url_for('alterar_senha') }}">
+                            <div class="mb-3">
+                                <label class="form-label">Senha Atual</label>
+                                <input type="password" name="senha_atual" class="form-control" required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nova Senha</label>
+                                    <input type="password" name="nova_senha" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Confirmar Nova Senha</label>
+                                    <input type="password" name="confirma_senha" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-outline-primary px-4 fw-bold rounded-3">Atualizar Senha</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card-config">
+                        <h5 class="section-title text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Atenção</h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="text-muted small m-0 pe-3">
+                                A exclusão da conta é permanente e não pode ser desfeita. Todos os seus dados serão apagados.
+                            </p>
+                            <form method="POST" action="{{ url_for('excluir_conta') }}" onsubmit="return confirm('ATENÇÃO: Esta ação é irreversível. Deseja realmente excluir sua conta?');">
+                                <button type="submit" class="btn btn-outline-danger fw-bold rounded-3 text-nowrap">Excluir Conta</button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
