@@ -7,13 +7,20 @@ from functools import wraps
 from sqlalchemy import desc, func
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '1234' 
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
 
-app.config['SQLALCHEMY_DATABASE_URI'] ='postgresql://neondb_owner:npg_wuOdPI0SlXs1@ep-crimson-hill-ac3il6gt-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+if not app.config['SQLALCHEMY_DATABASE_URI']:
+    raise RuntimeError('DATABASE_URL não configurada. Defina essa variável de ambiente no Render.')
 
 db.init_app(app)
 bcrypt.init_app(app)
+
+with app.app_context():
+    db.create_all()
 
 
 def login_required(f):
@@ -475,6 +482,5 @@ def graficos():
                            grafico_evolucao={'labels': datas_mov, 'data': valores_mov})
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)

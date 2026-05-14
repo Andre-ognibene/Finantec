@@ -30,9 +30,104 @@
             height: 100%; min-height: 140px; border-radius: 16px; text-decoration: none; transition: 0.3s;
         }
         .btn-add-meta:hover { border-color: #3b82f6; color: #3b82f6; background-color: #eff6ff; }
+    
+
+        :root {
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --text: #111827;
+            --muted: #6b7280;
+            --primary: #2563eb;
+            --primary-soft: #eff6ff;
+            --sidebar: #111827;
+            --border: #e5e7eb;
+            --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+            --radius: 18px;
+        }
+
+        * { box-sizing: border-box; }
+        body { min-height: 100vh; color: var(--text); }
+        .container-fluid { overflow-x: hidden; }
+        .sidebar {
+            position: sticky;
+            top: 0;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+        }
+        .brand-logo { white-space: nowrap; }
+        .nav-link { gap: 12px; }
+        .nav-link i { margin-right: 0 !important; flex: 0 0 auto; }
+        .main-content { padding: 48px; }
+        .card-custom, .section-box, .form-card, .meta-card, .card-config, .card-form, .card-invest, .simulador-box {
+            border-radius: var(--radius) !important;
+            box-shadow: var(--shadow) !important;
+        }
+        .form-control, .form-select, .btn { border-radius: 12px; }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 .2rem rgba(37, 99, 235, .12);
+        }
+        .progress { background-color: #e5e7eb; overflow: hidden; }
+        .mobile-header {
+            background: #111827;
+            color: #fff;
+            padding: 14px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .2);
+        }
+        .mobile-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: .3px; }
+        .mobile-menu { background: #111827; border-top: 1px solid rgba(255,255,255,.08); padding: 10px 16px 16px; }
+        .mobile-menu .nav-link { color: #d1d5db; }
+        .mobile-menu .nav-link.active { color: #fff; background-color: var(--primary); }
+        .mobile-menu .nav-link.text-danger { color: #fca5a5 !important; }
+        .btn-toggle-menu { border: 1px solid rgba(255,255,255,.16); color: #fff; background: rgba(255,255,255,.06); }
+        .btn-toggle-menu:hover { background: rgba(255,255,255,.12); color: #fff; }
+        .text-break-safe { word-break: break-word; }
+
+        @media (max-width: 991.98px) {
+            .main-content { padding: 28px 18px; }
+            .d-flex.justify-content-between.align-items-center { gap: 16px; flex-wrap: wrap; }
+            .card-value { font-size: 1.45rem !important; }
+            .form-card, .card-config, .card-form, .simulador-box { padding: 24px !important; }
+            .border-end { border-right: 0 !important; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; }
+        }
+
+        @media (max-width: 575.98px) {
+            .main-content { padding: 22px 14px; }
+            h2, .login-title { font-size: 1.55rem !important; }
+            .btn, .form-control, .form-select { width: 100%; }
+            .input-group .form-control { width: 1%; }
+            .chart-header { align-items: flex-start !important; }
+            .avatar-circle { width: 64px !important; height: 64px !important; font-size: 2rem !important; }
+        }
+
     </style>
 </head>
 <body>
+
+<div class="mobile-header d-md-none">
+    <div class="d-flex align-items-center justify-content-between">
+        <div class="mobile-brand"><span class="logo-icon"><i class="bi bi-graph-up-arrow"></i></span> FINANTEC</div>
+        <button class="btn btn-toggle-menu btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#mobileMenu" aria-expanded="false" aria-controls="mobileMenu">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+    </div>
+    <div class="collapse mobile-menu" id="mobileMenu">
+        <nav class="nav flex-column mt-2">
+            <a class="nav-link active" href="{{ url_for('dashboard') }}"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+            <a class="nav-link " href="{{ url_for('transferir_form') }}"><i class="bi bi-arrow-left-right"></i> Movimentações</a>
+            <a class="nav-link " href="{{ url_for('metas') }}"><i class="bi bi-bullseye"></i> Controle de Metas</a>
+            <a class="nav-link " href="{{ url_for('investimentos') }}"><i class="bi bi-graph-up"></i> Investimento</a>
+            <a class="nav-link " href="{{ url_for('graficos') }}"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
+            <a class="nav-link " href="{{ url_for('perfil') }}"><i class="bi bi-gear-fill"></i> Configurações</a>
+            <a class="nav-link text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Sair</a>
+        </nav>
+    </div>
+</div>
+
 
 <div class="container-fluid">
     <div class="row">
@@ -48,7 +143,7 @@
             </nav>
         </div>
 
-        <div class="col-md-10 p-5">
+        <div class="col-md-10 main-content">
             <div class="d-flex justify-content-between align-items-center mb-5">
                 <div><h2 class="fw-bold text-dark">Visão Geral</h2><p class="text-muted">Resumo da sua saúde financeira.</p></div>
                 <a href="{{ url_for('perfil') }}" class="d-flex align-items-center text-decoration-none text-dark">
@@ -84,7 +179,7 @@
                         <p class="card-value h4 mb-2">R$ {{ "{:,.2f}".format(meta.saldo).replace(',', 'X').replace('.', ',').replace('X', '.') }}</p>
                         {% set progresso = (meta.saldo / meta.valorMeta * 100) if meta.valorMeta > 0 else 0 %}
                         <div class="progress" style="height: 6px; border-radius: 10px;">
-                            <div class="progress-bar bg-primary" style="width: {{ progresso }}%"></div>
+                            <div class="progress-bar bg-primary" style="width: {{ [progresso, 100]|min }}%"></div>
                         </div>
                         <div class="d-flex justify-content-between mt-2">
                             <small class="text-muted">{{ "%.0f"|format(progresso) }}% atingido</small>
